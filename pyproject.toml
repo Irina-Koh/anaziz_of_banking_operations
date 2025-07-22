@@ -1,0 +1,55 @@
+[tool.isort]
+line_length = 119
+exclude = '''
+(
+  /(
+    | \.git
+    | \.venv
+  )/
+)
+'''
+[tool.black]
+line-length = 119
+exclude = '''
+(
+  /(
+    | \.git
+    | \.venv
+  )/
+)
+'''
+[project]
+name = "pythonprojectbank"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Irina Koh"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "requests (>=2.32.3,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "pandas (>=2.3.1,<3.0.0)",
+    "openpyxl (>=3.1.5,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.lint.dependencies]
+flake8 = "^7.2.0"
+mypy = "^1.15.0"
+black = "^25.1.0"
+isort = "^6.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^6.1.1"
+
+[tool.mypy]
+    disallow_untyped_defs = true
+    warn_return_any = true
+    exclude = 'venv'
