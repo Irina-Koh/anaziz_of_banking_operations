@@ -1,4 +1,4 @@
-# Проект банковские карты и счета 
+# Проект Анализ банковских операций
 
 ## Описание 
  
@@ -9,7 +9,7 @@
 ## Установка
 1. Клонируйте репозиторий:
 ```
-git clone https://github.com/Irina-Koh/-.git
+git clone https://github.com/Irina-Koh/analiz_of_banking_operations.git
 ```
 2. Установите зависимости:
 ```
