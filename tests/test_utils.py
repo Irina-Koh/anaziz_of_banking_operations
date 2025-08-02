@@ -1,5 +1,19 @@
 import pytest
-from src.utils import get_date_time, get_path_and_period, get_time_for_greeting
+from src.utils import (
+    get_date_time,
+    get_path_and_period,
+    get_time_for_greeting,
+    get_currency,
+    get_cards_with_spend,
+    get_top_transactions,
+    get_currency,
+    get_stock,
+    analyze_categories,
+    to_json,
+    report_to_file,
+    spending_by_category)
+
+
 from datetime import datetime
 from unittest.mock import patch
 
@@ -36,8 +50,8 @@ def test_get_date_time(date, expected):
     ("12/05/2023", [])
     ])
 def test_get_path_and_period(transactions_df, date_str):
-    get_path_and_period(path_to_file: str, time_period: list) -> pd.DataFrame:
-    expected_result =  [
+    #get_path_and_period(path_to_file: str, time_period: list) -> pd.DataFrame:
+    expected_result =  {
         {
             "last_digits": "7197",
             "total_spent": 160.89,
@@ -63,34 +77,33 @@ def test_get_path_and_period(transactions_df, date_str):
             "total_spent": 20000.00,
             "cashback": 200
         }
-    ]
+    }
 
     assert get_path_and_period(transactions_df, date_str) == expected_result
 
 
-def test_get_gards_with_spend() -> None:
-    get_gards_with_spend(sorted_df: DataFrame) -> list[dict]
+def test_get_cards_with_spend() -> None:
+    #get_gards_with_spend(sorted_df: DataFrame) -> list[dict]
     pass
 def test_get_top_transactions() -> None:
-    get_top_transactions(sorted_df: pd.DataFrame, get_top: int):
+    #get_top_transactions(sorted_df: pd.DataFrame, get_top: int):
     pass
 def test_get_currency() -> None:
-    get_currency(path_to_json: str) -> list[dict]:
+    #get_currency(path_to_json: str) -> list[dict]:
     pass
 def test_get_stock() -> None:
-    get_currency(path_to_json: str) -> list[dict]:
+    #get_stock(path_to_json: str) -> list[dict]:
     pass
 def test_analyze_categories() -> None:
-    analyze_categories(path_to_file: str, year: int, month: int) -> dict:
+    #analyze_categories(path_to_file: str, year: int, month: int) -> dict:
     pass
 def test_to_json() -> None:
-    to_json(data: dict) -> str:
+    #to_json(data: dict) -> str:
     pass
 def test_report_to_file() -> None:
-    report_to_file(filename=None):
-
+    #report_to_file(filename=None):
     pass
 def test_spending_by_category() -> None:
-    spending_by_category(transactions: pd.DataFrame, category: str, date: str = None) -> pd.DataFrame:
+    #spending_by_category(transactions: pd.DataFrame, category: str, date: str = None) -> pd.DataFrame:
     pass
 

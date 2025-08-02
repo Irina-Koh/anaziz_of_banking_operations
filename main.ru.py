@@ -1,9 +1,6 @@
-from black import datetime
 from src.views import main_info
-from pprint import pprint
 from src.services import profitable_cashback_categories
 from src.reports import spending_report_by_category
-
 
 
 if __name__ == "__main__":
