@@ -11,34 +11,35 @@ from functools import wraps
 from typing import Optional
 import logging
 import os
+from config import ROOT_DIR
+from dotenv import load_dotenv
+load_dotenv()
 
+URL = os.getenv("URL")
+API_KEY = os.getenv("API_KEY")
+URL_2 = os.getenv("URL_2")
+API_KEY_2 = os.getenv("API_KEY_2")
 
-URL = "https://api.apilayer.com/exchangerates_data/convert"
-API_KEY = "S7onde8V2jerpwvAsMnPEZCRHGS00PUR"
-URL_2 = "https://www.alphavantage.co/query"
-API_KEY_2 = "0WEGYQ7OA78ECY4L"
-
-
-# Создание директории logs, если её нет
-os.makedirs("./logs", exist_ok=True)
 
 # Получаем экземпляр логгера
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
 # Настройка файлового обработчика
-file_handler = logging.FileHandler(filename="./logs/utils.log", encoding="utf-8", mode="w")
+file_handler = logging.FileHandler(filename=ROOT_DIR + "/logs/utils.log", encoding="utf-8", mode="w")
 file_formater = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(file_formater)
 # Регистрируем обработчик
 logger.addHandler(file_handler)
 
 
-def get_time_for_greeting():
+def get_time_for_greeting(date: datetime = None):
     """
     Функция возращает приветствие в зависимости от текущего времени
     """
-    user_datetime = datetime.now()
-    hour = user_datetime.hour
+    if date is None:
+        date = datetime.now()
+
+    hour = date.hour
     if 5 <= hour < 12:
         return 'Доброе утро'
     elif 12 <= hour < 18:
@@ -65,7 +66,7 @@ def get_date_time(date_time, date_format='%Y-%m-%d %H:%M:%S') -> list[str]:
         return []
 
 
-def get_path_and_period(path_to_file: str, period_data: list) -> pd.DataFrame:
+def get_path_and_period(path_to_file: str, time_period: list) -> pd.DataFrame:
     """
     Функция принимает путь к Excel файлу и список дат, и возвращает таблицу в заданном периоде.
     """
@@ -79,9 +80,9 @@ def get_path_and_period(path_to_file: str, period_data: list) -> pd.DataFrame:
         df['Дата операции'] = pd.to_datetime(df['Дата операции'], dayfirst=True)
 
         # Разбор начальных и конечных дат из списка period_data
-        logger.info(f"Разбор дат: {period_data}")
-        start_date = datetime.strptime(period_data[0], '%d.%m.%Y %H:%M:%S')
-        end_date = datetime.strptime(period_data[1], '%d.%m.%Y %H:%M:%S')
+        logger.info(f"Разбор дат: {time_period:}")
+        start_date = datetime.strptime(time_period[0], '%d.%m.%Y %H:%M:%S')
+        end_date = datetime.strptime(time_period[1], '%d.%m.%Y %H:%M:%S')
 
         # Фильтрация по указанным датам
         logger.info(f"Фильтрация данных за период: {start_date} - {end_date}")
@@ -150,9 +151,6 @@ def get_gards_with_spend(sorted_df: DataFrame) -> list[dict]:
             # Добавляем транзакцию в итоговый список
             card_spend_transactions.append(transaction_row)
 
-            # Логируем каждую операцию расхода
-            logger.info(
-                f'Обработана операция с картой №{last_digits}, сумма расхода: {total_spent}. Полученный кэшбек: {cashback}')
 
     # Возвращаем финальный список транзакций
     logger.info(f'Возвращено {len(card_spend_transactions)} записей расходов.')
@@ -201,13 +199,7 @@ def get_top_transactions(sorted_df: pd.DataFrame, get_top: int):
             }
             top_pay_transations.append(transation)
 
-            # Логируем обработку каждой транзакции
-            logger.info(
-                f'Обработали транзакцию: дата - {transation["data"]}, '
-                f'сумма - {transation["amount"]}, '
-                f'категория - {transation["category"]}, '
-                f'описание - {transation["description"]}'
-            )
+
     except KeyError as ke:
         logger.error(f'Ошибочный ключ в DataFrame: {ke}')
         raise
@@ -229,7 +221,7 @@ def get_currency(path_to_json: str) -> list[dict]:
         # Чтение файла JSON
         with open(path_to_json, 'r', encoding="utf-8") as file:
             data = json.load(file)
-            currencies = data.get('user_currencies')  # Используйте метод .get() для безопасности
+            currencies = data.get('user_currencies')
             if not currencies:
                 logger.warning("Нет данных о валютах в файле")
                 return []
@@ -252,10 +244,11 @@ def get_currency(path_to_json: str) -> list[dict]:
                     logger.error(f"Ошибка HTTP ({status_code}) при получении курса для {currency}")
                     continue
 
-                # Парсим JSON ответ
+                # JSON ответ
                 result = response.json()
+                print(result)
                 currence_code_response = result.get("query", {}).get("from")
-                currence_amount = result.get("rates", {}).get("RUB")
+                currence_amount = round(result.get("result", {}), 2)
 
                 if currence_code_response is None or currence_amount is None:
                     logger.error(f"Некорректный ответ сервера для валюты {currency}: {response.text}")
@@ -269,6 +262,9 @@ def get_currency(path_to_json: str) -> list[dict]:
 
                 logger.info(f"Успешно получили курс для {currency}: {currence_amount} руб.")
 
+        return currency_rates
+
+
     except FileNotFoundError:
         logger.error(f"Файл '{path_to_json}' не найден!")
     except json.JSONDecodeError:
@@ -278,7 +274,8 @@ def get_currency(path_to_json: str) -> list[dict]:
     except Exception as err:
         logger.error(f"Необработанная ошибка: {err}")
 
-    return currency_rates
+
+
 
 def get_stock(path_to_json: str):
     """
@@ -301,7 +298,6 @@ def get_stock(path_to_json: str):
                     "function": "TIME_SERIES_DAILY",
                     "symbol": stock,
                     "apikey": API_KEY_2,
-                    "outputsize": "compact",  # Ограничиваем объем данных
                     "datatype": "json"
                 }
 
@@ -317,11 +313,10 @@ def get_stock(path_to_json: str):
                 # Преобразование ответа в JSON
                 r = response.json()
                 print(r)
-
                 # Определяем вчерашнюю дату
                 local_time = datetime.now()
                 yesterday = local_time - timedelta(days=1)
-                date_str = yesterday.strftime('%d.%m.%Y')
+                date_str = yesterday.strftime('%Y-%m-%d')
 
                 # Извлекаем цену закрытия за предыдущий день
                 closing_price = r.get("Time Series (Daily)", {}).get(date_str, {}).get('4. close')
@@ -333,7 +328,7 @@ def get_stock(path_to_json: str):
 
                 # Конвертируем цену в число и добавляем в результат
                 stocks_code_response = float(closing_price)
-                stocks_amount = stocks_code_response
+                stocks_amount = round(stocks_code_response, 2)
 
                 stock_rates.append({
                     "stock": stock,
@@ -341,7 +336,7 @@ def get_stock(path_to_json: str):
                 })
 
                 logger.info(f"Акция {stock}: Цена закрытия {yesterday.date()} составляет {stocks_amount:.2f} USD.")
-
+        return stock_rates
     except FileNotFoundError:
         logger.error(f"Файл '{path_to_json}' не найден.")
     except json.JSONDecodeError:
@@ -437,7 +432,7 @@ def report_to_file(filename=None):
                 file_name = f"{func.__name__}_{timestamp}.txt"
 
             try:
-                with open(file_name, 'w') as f:
+                with open(ROOT_DIR + "/logs/" + file_name, 'w') as f:
                     f.write(result.to_string())
                 logger.info(f"Отчет сохранен в файл: {file_name}")
             except OSError as e:
@@ -464,7 +459,6 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: str = 
 
         # Устанавливаем начало периода (за последние 3 месяца)
         start_date = current_date - timedelta(days=90)
-        formatted_start_date = start_date.strftime('%d.%m.%Y')
         # Проверяем наличие нужного столбца в таблице
         if 'Дата платежа' not in transactions.columns:
             raise ValueError("Колонка 'Дата платежа' отсутствует в данных.")

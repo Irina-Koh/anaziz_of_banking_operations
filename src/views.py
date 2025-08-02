@@ -3,6 +3,7 @@ from typing import Dict, Any
 
 from openpyxl.styles.builtins import currency_0
 
+from config import ROOT_DIR
 from src.utils import (
     get_time_for_greeting,
     get_date_time,
@@ -22,11 +23,11 @@ def main_info(date_time) -> Dict[str, Any]:
     greeting = get_time_for_greeting()
     # делаем срез экселя на определенный диапозон
     time_period = get_date_time(date_time)
-    sorted_df = get_path_and_period("./data/operations.xlsx", time_period)
+    sorted_df = get_path_and_period(ROOT_DIR + "/data/operations.xlsx", time_period)
     cards = get_gards_with_spend(sorted_df)
     top_transactions = get_top_transactions(sorted_df, 5)
-    currency_rates = get_currency("./data/user_settings.json")
-    stocks_prices = get_stock("./data/user_settings.json")
+    currency_rates = get_currency(ROOT_DIR + "/data/user_settings.json")
+    stocks_prices = get_stock(ROOT_DIR + "/data/user_settings.json")
     data = {
         "greeting": greeting,
         "cards": cards,
